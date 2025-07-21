@@ -1,15 +1,15 @@
 from django.contrib import admin
 from django.urls import include, path
+from core.views import StudentViewSet, ClassViewSet, ClassOptionViewSet, PricePlanViewSet, EnrollmentViewSet, PaymentViewSet
 from rest_framework.routers import DefaultRouter
 from rest_framework.authtoken.views import obtain_auth_token
 
 router = DefaultRouter()
-router.register("students", StudentViewSet)
-router.register("classes", ClassViewSet)
-router.register("class-options", ClassOptionViewSet)
-router.register("price-plans", PricePlanViewSet)
-router.register("enrollments", EnrollmentViewSet)
-router.register("payments", PaymentViewSet)
+router.register(r"students", StudentViewSet, basename="students")
+router.register(r"classes", ClassViewSet, basename="classes")
+router.register(r"class-options", ClassOptionViewSet, basename="class-options")
+router.register(r"enrollments", EnrollmentViewSet, basename="enrollments")
+router.register(r"payments", PaymentViewSet, basename="payments")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
