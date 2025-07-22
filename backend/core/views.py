@@ -47,7 +47,7 @@ class ClassOptionViewSet(ModelViewSet):
 class EnrollmentViewSet(ModelViewSet):
     queryset = (
         Enrollment.objects.select_related('student', 'class_option')
-        .order_by('enrollment_date')
+        .order_by('start', 'student__last_name', 'student__first_name')
     )
     serializer_class = EnrollmentSerializer
     permission_classes = [IsAuthenticated]
@@ -55,9 +55,9 @@ class EnrollmentViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['student__dni', 'class_option']
     search_fields = ['student__dni', 'student__first_name', 'student__last_name', 'class_option__klass__name']
-    ordering_fields = ['enrollment_date', 'due_date', 'paid_on', 'amount_due', 'amount_paid']
-    ordering = ['enrollment_date']
-    
+    ordering_fields = ['start', 'due_date', 'paid_on', 'amount_due', 'amount_paid']
+    ordering = ['start']
+
 class PaymentViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = PaymentSerializer

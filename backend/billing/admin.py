@@ -10,10 +10,10 @@ class PricePlanInline(admin.TabularInline):
 class PricePlanAdmin(admin.ModelAdmin):
     list_display = ('option', 'cycle', 'base_price')
     list_filter = ('cycle',)
-    search_fields = ("option__name",)
+    search_fields = ('option__name',)
     ordering = ('option__name', 'cycle')
     
 @admin.register(ClassOption)
 class ClassOptionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description')
+    list_display = ('klass__name',)
     inlines = [PricePlanInline]

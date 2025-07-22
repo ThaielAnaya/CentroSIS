@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import include, path
-from core.views import StudentViewSet, ClassViewSet, ClassOptionViewSet, PricePlanViewSet, EnrollmentViewSet, PaymentViewSet
+from core.views import StudentViewSet, ClassViewSet, ClassOptionViewSet, EnrollmentViewSet, PaymentViewSet
 from rest_framework.routers import DefaultRouter
 from rest_framework.authtoken.views import obtain_auth_token
 

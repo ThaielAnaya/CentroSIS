@@ -29,7 +29,7 @@ class PricePlan(models.Model):
 class Enrollment(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='enrollments')
     option = models.ForeignKey(ClassOption, on_delete=models.PROTECT)
-    start = models.DateField(db_default=timezone.now)
+    start = models.DateField(default=timezone.now)
     
 class Payment(models.Model):
     enrollment  = models.ForeignKey(Enrollment, on_delete=models.CASCADE)
