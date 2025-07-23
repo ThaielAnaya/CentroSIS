@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState, useMemo } from 'react';
-import type { ColumnDef, StringOrTemplateHeader } from '@tanstack/react-table';
+import type { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '../components/DataTable';
 import { motion, AnimatePresence } from 'framer-motion';
 
