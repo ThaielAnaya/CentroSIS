@@ -15,6 +15,7 @@ const router = realCreateBrowserRouter([
     element: <BaseLayout />,
     children: [
       { index: true, element: <Home /> },
+      { index: true, path: '/home', element: <Home /> },
 /*       { path: '/students', element: <Students /> },
       { path: '/enrollments', element: <Enrollments /> },
       { path: '/payments', element: <Payments /> }, */

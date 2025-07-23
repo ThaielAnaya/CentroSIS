@@ -1,8 +1,9 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import logo from '@/assets/tenriicon.webp';
+import logo from '../assets/tenrikyoemblem.png';
+import { Link } from 'react-router-dom';
 
 const nav = [
-    { to: "/home", label: "Home"},
+    { to: "/home", label: "Inicio"},
     { to: "/students", label: "Alumnos" },
     { to: "/enrollments", label: "Inscripciones" },
     { to: "/payments", label: "Pagos" },
@@ -10,11 +11,13 @@ const nav = [
 
 export default function BaseLayout() {
     return (
-        <div className="min-h-screen flex">
+        <div className="min-h-screen min-w-full flex">
             {/* Sidebar */}
-            <aside className='w-60 shrink-0 bg-gray-800 text-gray-100 flex flex-col'>
+            <aside className='w-60 shrink-0 bg-gray-800 text-gray-100 flex flex-col h-screen'>
                 <div className='h-16 flex items-center justify-center border-b border-gray-700'>
-                    <img src={logo} alt="Logo" className='w-8 h-8' />
+                    <Link to="/" className='text-xl font-bold'>
+                        <img src={logo} alt="Logo" className='w-12 h-12' />
+                    </Link>
                 </div>
 
                 <nav className='flex-1 overflow-y-auto py-4'>
@@ -36,8 +39,10 @@ export default function BaseLayout() {
             </aside>
 
             {/* Main Content */}
-            <main className='flex-1 bg-gray-100'>
+            <main className='flex-1 bg-gray-100 h-screen overflow-y-auto w-full'>
+                <div className='p-6 min-w-[800px]'>
                 <Outlet />
+                </div>
             </main>
         </div>
     )
