@@ -12,6 +12,7 @@ router.register(r"enrollments", EnrollmentViewSet, basename="enrollments")
 router.register(r"payments", PaymentViewSet, basename="payments")
 
 urlpatterns = [
+    path('nested_admin/', include("nested_admin.urls")),
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
     path('api/auth/', obtain_auth_token),

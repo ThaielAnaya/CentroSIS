@@ -8,10 +8,10 @@ def student_with_finance(today:date = date.today()):
     
     qs = qs.annotate(
         enrolled_classes=Count('enrollments__option__klass', distinct=True),
-        amount_due = Sum('enrollments__amount_due',
-                         filter=Q(enrollments__payment__due_date__month=today.month,)),
+        amount_due = Sum('enrollments__payments__amount_due',
+                         filter=Q(enrollments__payments__due_date__month=today.month,)),
         amount_paid = Sum('enrollments__payment__amount_paid',
-                          filter=Q(enrollments__payment__due_date__month=today.month,)),
+                          filter=Q(enrollments__payments__due_date__month=today.month,)),
     ).annotate(
         debt = F('amount_due') - F('amount_paid'),
         is_paid = Case(When(debt__lte=0, then=True), default=False, output_field=BooleanField()),

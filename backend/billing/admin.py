@@ -1,19 +1,23 @@
 from django.contrib import admin
-from core.models import PricePlan, ClassOption
+from nested_admin import (
+    NestedModelAdmin, NestedStackedInline, NestedTabularInline,
+)
 
+from core.models import PricePlan, ClassOption, Class
 
-class PricePlanInline(admin.TabularInline):
+class PricePlanInline(NestedTabularInline):
     model = PricePlan
     extra = 1
     
-@admin.register(PricePlan)
-class PricePlanAdmin(admin.ModelAdmin):
-    list_display = ('option', 'cycle', 'base_price')
-    list_filter = ('cycle',)
-    search_fields = ('option__name',)
-    ordering = ('option__name', 'cycle')
-    
-@admin.register(ClassOption)
-class ClassOptionAdmin(admin.ModelAdmin):
-    list_display = ('klass__name',)
+class ClassOptionInLine(NestedStackedInline):
+    model = ClassOption
+    extra = 1
     inlines = [PricePlanInline]
+    
+@admin.register(Class)
+class ClassAdmin(NestedModelAdmin):
+    list_display = ("name",)
+    search_fields = ("name",)
+    inlines = [ClassOptionInLine]
+    
+    

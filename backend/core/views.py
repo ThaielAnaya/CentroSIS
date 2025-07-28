@@ -12,7 +12,7 @@ from .models import Class, ClassOption, Enrollment, Payment, Student
 
 class StudentViewSet(ModelViewSet):
     serializer_class = StudentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = []
     
     def get_queryset(self):
         return student_with_finance()
@@ -26,7 +26,7 @@ class StudentViewSet(ModelViewSet):
 class ClassViewSet(ModelViewSet):
     queryset = Class.objects.all().order_by('name')
     serializer_class = ClassSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = []
     
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['name']
@@ -36,7 +36,7 @@ class ClassViewSet(ModelViewSet):
 class ClassOptionViewSet(ModelViewSet):
     queryset = ClassOption.objects.select_related("klass")
     serializer_class = ClassOptionSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = []
     
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['klass', 'weekly_sessions']
@@ -50,7 +50,7 @@ class EnrollmentViewSet(ModelViewSet):
         .order_by('start', 'student__last_name', 'student__first_name')
     )
     serializer_class = EnrollmentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = []
     
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['student__dni', 'class_option']
@@ -59,7 +59,7 @@ class EnrollmentViewSet(ModelViewSet):
     ordering = ['start']
 
 class PaymentViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = []
     serializer_class = PaymentSerializer
     
     def get_queryset(self):
