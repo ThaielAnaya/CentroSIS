@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
-import axios from 'axios';
+import { api } from '../lib/api';
 
 interface Props {
   open: boolean;
@@ -42,7 +42,7 @@ export default function NewStudentModal({ open, onClose, onCreated }: Props) {
     queryKey: ['class-options'],
     enabled : open,
     queryFn : () =>
-      axios.get('/api/class-options/').then(r => r.data as any[]),
+      api.get('/api/class-options/').then(r => r.data as any[]),
   });
 
   /* mutation */
@@ -51,7 +51,7 @@ export default function NewStudentModal({ open, onClose, onCreated }: Props) {
     AxiosError<{ [k: string]: string[] }>,
     FormState
   >({
-    mutationFn : payload => axios.post('/api/students/', payload),
+    mutationFn : payload => api.post('/api/students/', payload),
     onSuccess  : () => {
       onCreated?.();
       setMsg({ ok: true, text: 'Alumno creado correctamente!' });

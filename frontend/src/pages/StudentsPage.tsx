@@ -13,6 +13,7 @@ import StudentModal from '../components/NewStudentModal';
 import EditStudentModal from '../components/EditStudentModal';
 import type { Student } from '../types/student';
 import MakePaymentModal from '../components/MakePaymentModal';
+import { api } from '../lib/api';
 
 /* -------------------------------------------------------------------------- */
 
@@ -26,7 +27,7 @@ export default function StudentsPage() {
   /* server data ----------------------------------------------------------- */
   const { data: students = [], isLoading } = useQuery<Student[]>({
     queryKey: ['students'],
-    queryFn: () => fetch('/api/students/').then(r => r.json()),
+    queryFn: () => api.get('/students/').then(r => r.data),
   });
 
   /* UI state -------------------------------------------------------------- */

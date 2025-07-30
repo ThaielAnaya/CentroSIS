@@ -1,10 +1,10 @@
 /* components/MakePaymentModal.tsx */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Student } from '../types/student';
 import type { AxiosError } from 'axios';
+import { api } from '../lib/api'
 
 interface Props {
   student: Student | null;        // null → closed
@@ -21,7 +21,7 @@ export default function MakePaymentModal({ student, onClose }: Props) {
     queryKey: ['payment', student?.id],
     enabled: open,
     queryFn: () =>
-      axios
+      api
         .get(
           `/api/payments/?enrollment__student__DNI=${student!.DNI}` +
             `&cycle=M&due_date__month=${new Date().getMonth() + 1}`,
@@ -44,7 +44,7 @@ export default function MakePaymentModal({ student, onClose }: Props) {
   /* live-preview: switch method -> PATCH only method, get updated amount */
   const previewMutation = useMutation({
     mutationFn: (m: 'cash' | 'transfer') =>
-      axios.patch(`/api/payments/${payment.id}/`, { method: m }),
+      api.patch(`/api/payments/${payment.id}/`, { method: m }),
     onSuccess: ({ data }) => setPay(String(data.amount_due)),
   });
 
@@ -54,7 +54,7 @@ export default function MakePaymentModal({ student, onClose }: Props) {
     void
     >({
     mutationFn: () =>
-      axios.patch(`/api/payments/${payment.id}/`, {
+      api.patch(`/api/payments/${payment.id}/`, {
         method,
         amount_paid: Number(pay),
         paid_on: todayISO,

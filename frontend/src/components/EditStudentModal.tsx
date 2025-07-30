@@ -1,9 +1,10 @@
 /* components/EditStudentModal.tsx */
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import axios, { AxiosError } from 'axios';
+import { AxiosError } from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Student } from '../types/student.ts';
+import { api } from '../lib/api'
 
 interface Props {
   student: Student | null;          // null = closed
@@ -34,7 +35,7 @@ export default function EditStudentModal({ student, onClose }: Props) {
   /* load class options once ------------------------------------------------ */
   const { data: classOptions = [] } = useQuery({
     queryKey: ['class-options'],
-    queryFn: () => axios.get('/api/class-options/').then(r => r.data),
+    queryFn: () => api.get('/class-options/').then(r => r.data),
     enabled: open,
   });
 
@@ -60,7 +61,7 @@ export default function EditStudentModal({ student, onClose }: Props) {
   queryKey: ['enrolments', student?.id],
   enabled: open && !!student?.DNI,
   queryFn: () =>
-    axios
+    api
       .get(`/api/enrollments/?student__DNI=${student!.DNI}`)
       .then(r =>
         r.data as { id: number; option: number; start: string }[],
@@ -102,16 +103,16 @@ export default function EditStudentModal({ student, onClose }: Props) {
 
   /* -------- mutations ---------------------------------------------------- */
   const patchStudent = useMutation({
-    mutationFn: (payload: Partial<FormState>) => axios.patch(`/api/students/${student!.id}/`, payload),
+    mutationFn: (payload: Partial<FormState>) => api.patch(`/students/${student!.id}/`, payload),
   });
   const postEnrollment = useMutation({
     mutationFn: (e: Enrollment) =>
-        axios.post('/api/enrollments/', { ...e, student: student!.id }),
+        api.post('/enrollments/', { ...e, student: student!.id }),
     });
 
   const deleteEnrollment = useMutation({
     mutationFn: (id: number) =>
-        axios.delete(`/api/enrollments/${id}/`),
+        api.delete(`/enrollments/${id}/`),
     });
   /* -------- submit ------------------------------------------------------- */
   const submit = async (e: React.FormEvent) => {
@@ -133,7 +134,7 @@ export default function EditStudentModal({ student, onClose }: Props) {
       /* enrolments diff ---------------------------------------------------- */
       const originalIds = new Set(form.enrollments.filter(e => e.id).map(e => e.id as number));
       /* deletions first */
-      const { data: current } = await axios.get(`/api/enrollments/?student__DNI=${student!.DNI}`);
+      const { data: current } = await api.get(`/enrollments/?student__DNI=${student!.DNI}`);
       for (const enr of current) if (!originalIds.has(enr.id)) await deleteEnrollment.mutateAsync(enr.id);
       /* additions */
       for (const e of form.enrollments) if (!e.id) await postEnrollment.mutateAsync(e);
@@ -244,6 +245,3 @@ export default function EditStudentModal({ student, onClose }: Props) {
     </AnimatePresence>
   );
 }
-
-/* tailwind helper */
-const input = "input";
