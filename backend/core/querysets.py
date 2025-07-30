@@ -17,7 +17,6 @@ from django.db.models.functions import Coalesce, ExtractDay
 
 from .models import CUTOFF_DAY, Student
 
-
 def student_with_finance(today: date | None = None):
     """
     One-row-per-student queryset with:
@@ -60,7 +59,7 @@ def student_with_finance(today: date | None = None):
         )
         # ── helpers ───────────────────────────────────────────────────────
         .annotate(
-            debt=F("amount_due") - F("amount_paid"),
+            debt=F("amount_due") - F("amount_paid") - F('credit_balance'),
             joined_day=ExtractDay("enrollments__start", output_field=IntegerField()),
         )
         # ── base flags ────────────────────────────────────────────────────

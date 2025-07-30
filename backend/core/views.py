@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -7,7 +7,7 @@ from django_filters import rest_framework as filters
 from django.db.models import F, Value, BooleanField, Case, When, Q
 from datetime import date
 
-from .serializers import StudentSerializer, StudentCreateSerializer, ClassOptionSerializer, ClassSerializer, EnrollmentSerializer, PaymentSerializer
+from .serializers import StudentSerializer, StudentCreateSerializer, ClassOptionSerializer, ClassSerializer, EnrollmentSerializer, PaymentSerializer, PaymentListSerializer
 from .querysets import student_with_finance
 from .models import Class, ClassOption, Enrollment, Payment, Student
 
@@ -74,6 +74,19 @@ class EnrollmentViewSet(ModelViewSet):
     filterset_fields = ['student__DNI', 'option']
     search_fields = ['student__DNI', 'student__first_name', 'student__last_name', 'option__klass__name']
     ordering_fields = ['start', 'due_date', 'paid_on', 'amount_due', 'amount_paid']
+    is_paid = filters.BooleanFilter(method='filter_paid')
+    is_late = filters.BooleanFilter(method='filter_late')
+
+    def filter_paid(self, qs, name, value):
+        return qs.filter(is_paid=value)
+
+class PaymentFilter(filters.FilterSet):
+    def filter_late(self, qs, name, value):
+        return qs.filter(is_late=value)
+
+    class Meta:
+        model  = Payment
+        fields = ['method', 'enrollment__student__DNI', 'due_date']
     ordering = ['start']
 
 class PaymentViewSet(ModelViewSet):
@@ -105,15 +118,21 @@ class PaymentViewSet(ModelViewSet):
     )
     
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = {
-        "method":          ["exact"],
-        "enrollment__student__DNI": ["exact"],     # filter by DNI
-        "is_paid":         ["exact"],
-        "is_late":         ["exact"],
-        "due_date":        ["gte", "lte"],
-    }
+    filterset_class = PaymentFilter
     search_fields = ['enrollment__student__first_name', 'enrollment__student__last_name', 'enrollment__student__DNI']
     ordering_fields = ['due_date', 'amount_due', 'amount_paid', 'is_paid', 'enrollment__student__DNI']
     ordering = ['due_date']
 
-    
+class PaymentListViewSet(ReadOnlyModelViewSet):
+    serializer_class = PaymentListSerializer
+    permission_classes = []         
+
+    def get_queryset(self):
+        return (
+            Payment.objects
+            .select_related(
+                'enrollment__student',
+                'enrollment__option__klass',
+            )
+            .order_by('-paid_on', '-id')
+        )

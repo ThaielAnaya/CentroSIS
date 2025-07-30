@@ -18,9 +18,12 @@ type Enrollment = {
 
 type FormState = {
   DNI: string;
+  cuil: string;
   first_name: string;
   last_name: string;
   birth_date: string;
+  contact: string;
+  active: boolean;
   is_family_member: boolean;
   enrollments: Enrollment[];
 };
@@ -41,11 +44,14 @@ export default function EditStudentModal({ student, onClose }: Props) {
     if (student) {
       setForm({
         DNI: student.DNI,
+        cuil: student.cuil,
         first_name: student.first_name,
-        last_name: student.last_name,
+        last_name:  student.last_name,
         birth_date: student.birth_date,
+        contact:    student.contact ?? '',
         is_family_member: student.has_family,
-        enrollments: [],            // will fetch below
+        active: student.active,
+        enrollments: [],
       });
     }
   }, [student]);
@@ -113,6 +119,8 @@ export default function EditStudentModal({ student, onClose }: Props) {
     if (!form) return;
     /* client-side DNI numeric check */
     if (!/^\d+$/.test(form.DNI)) return alert('DNI debe contener solo números');
+    if (!/^\d+$/.test(form.DNI))   return alert('DNI numérico');
+    if (!/^\d{11}$/.test(form.cuil)) return alert('CUIL debe tener 11 dígitos');
 
     const { enrollments: _discard, ...toPatch } = form;   // drop 'enrollments'
     await patchStudent.mutateAsync(toPatch);
@@ -163,10 +171,18 @@ export default function EditStudentModal({ student, onClose }: Props) {
           {/* basic --------------------------------------------------------- */}
           <div className="grid grid-cols-2 gap-3">
             <input className="input" placeholder="DNI" value={form.DNI} onChange={handle('DNI')} required />
-            <input className="input" type="date" value={form.birth_date} onChange={handle('birth_date')} required />
+            <input className="input" placeholder="CUIL (11)" value={form.cuil} onChange={handle('cuil')} required pattern="\d{11}" />
             <input className="input" placeholder="Nombre" value={form.first_name} onChange={handle('first_name')} required />
             <input className="input" placeholder="Apellido" value={form.last_name} onChange={handle('last_name')} required />
+            <input className="input" type="date" value={form.birth_date} onChange={handle('birth_date')} required />
+            <input className="input" placeholder="Contacto" value={form.contact} onChange={handle('contact')} />
           </div>
+
+          <label className="mt-2 flex items-center gap-2">
+            <input type="checkbox" checked={form.active}
+                   onChange={handle('active')} />
+            Activo
+          </label>
 
           <label className="mt-2 flex items-center gap-2">
             <input type="checkbox" checked={form.is_family_member} onChange={handle('is_family_member')} />

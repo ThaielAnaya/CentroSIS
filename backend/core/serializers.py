@@ -27,15 +27,16 @@ class StudentSerializer(serializers.ModelSerializer):
     debt             = serializers.IntegerField(read_only=True)
     is_paid          = serializers.BooleanField(read_only=True)
     is_late          = serializers.BooleanField(read_only=True)
+    display_cuil = serializers.CharField(read_only=True)
     has_family       = serializers.BooleanField(source='is_family_member', read_only=True)
 
     class Meta:
         model  = Student
         fields = [
-            'id', 'DNI', 'first_name', 'last_name', 'birth_date', 'active',
+            'id', 'DNI', 'display_cuil', 'first_name', 'last_name', 'birth_date', 'contact', 'active',
             'is_family_member', 'created_at',
             'enrolled_classes', 'enrolled_count', 'is_paid', 'is_late', 'amount_due', 'debt',
-            'has_family', 
+            'has_family', 'credit_balance' 
         ]
 
 
@@ -130,6 +131,20 @@ class PaymentSerializer(serializers.ModelSerializer):
         after_cutoff  = timezone.now().date().day > CUTOFF_DAY
         return joined_before and after_cutoff
 
+class PaymentListSerializer(serializers.ModelSerializer):
+    DNI        = serializers.CharField(source='enrollment.student.DNI')
+    last_name  = serializers.CharField(source='enrollment.student.last_name')
+    first_name = serializers.CharField(source='enrollment.student.first_name')
+    class_name = serializers.CharField(source='enrollment.option.klass.name')
+    cuil = serializers.CharField(source='enrollment.student.cuil')
+
+    class Meta:
+        model  = Payment
+        fields = [
+            'DNI', 'cuil', 'last_name', 'first_name',
+            'class_name', 'cycle', 'amount_paid',
+            'method', 'paid_on',
+        ]
 
 # ─── STUDENT CREATE ──────────────────────────────────────────────────────────
 
@@ -140,7 +155,7 @@ class StudentCreateSerializer(serializers.ModelSerializer):
         model  = Student
         fields = [
             'DNI', 'first_name', 'last_name', 'birth_date',
-            'is_family_member', 'enrollments',
+            'is_family_member', 'enrollments', 'cuil', 'contact',
         ]
 
     def create(self, validated_data):

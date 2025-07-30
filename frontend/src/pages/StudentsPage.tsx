@@ -5,7 +5,6 @@ import {
   useMemo,
   useCallback,
   useDeferredValue,
-  Fragment,
 } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '../components/DataTable';
@@ -13,6 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import StudentModal from '../components/NewStudentModal';
 import EditStudentModal from '../components/EditStudentModal';
 import type { Student } from '../types/student';
+import MakePaymentModal from '../components/MakePaymentModal';
 
 /* -------------------------------------------------------------------------- */
 
@@ -21,6 +21,7 @@ export default function StudentsPage() {
 
   /* hooks declared INSIDE component --------------------------------------- */
   const [editTarget, setEditTarget] = useState<Student | null>(null);
+  const [payTarget, setPayTarget] = useState<Student | null>(null);
 
   /* server data ----------------------------------------------------------- */
   const { data: students = [], isLoading } = useQuery<Student[]>({
@@ -54,25 +55,19 @@ export default function StudentsPage() {
 
   /* actions --------------------------------------------------------------- */
   const modifyStudent = useCallback((st: Student) => setEditTarget(st), []);
-  const addPayment = useCallback(
-    (st: Student) => console.log('payment for', st.id),
-    []
-  );
+  const addPayment = useCallback((st: Student) => setPayTarget(st), []);
 
   /* columns --------------------------------------------------------------- */
   const cols: ColumnDef<Student>[] = useMemo(
     () => [
-      { header: 'DNI', accessorKey: 'DNI' },
-      { header: 'Apellido', accessorKey: 'last_name' },
-      { header: 'Nombre', accessorKey: 'first_name' },
-      {
-        header: 'Clases',
-        cell: ({ row }) => row.original.enrolled_classes.join(', '),
-      },
-      {
-        header: 'Familia',
-        cell: ({ row }) => (row.original.has_family ? 'Sí' : 'No'),
-      },
+      { header:'DNI',   accessorKey:'DNI' },
+      { header:'CUIL',  accessorKey:'display_cuil' },
+      { header:'Apellido', accessorKey:'last_name' },
+      { header:'Nombre',   accessorKey:'first_name' },
+      { header:'Contacto', accessorKey:'contact' },
+      { header:'Clases', cell:({row})=>row.original.enrolled_classes.join(', ') },
+      { header:'Activo', cell:({row})=>row.original.active?'Sí':'No' },
+      { header:'Familia', cell:({row})=>row.original.has_family?'Sí':'No' },
       {
         id: 'actions',
         header: '',
@@ -236,6 +231,10 @@ export default function StudentsPage() {
       <EditStudentModal
         student={editTarget}
         onClose={() => setEditTarget(null)}
+      />
+      <MakePaymentModal
+        student={payTarget}
+        onClose={() => setPayTarget(null)}
       />
     </div>
   );
