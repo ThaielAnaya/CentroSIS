@@ -13,7 +13,7 @@ def create_payments_for_enrollment(sender, instance, created, **kwargs):
     
     option = instance.option
     try:
-        plan = option.priceplan
+        plan = option.priceplan_set
     except PricePlan.DoesNotExist:
         return
     

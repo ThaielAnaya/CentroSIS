@@ -53,37 +53,39 @@ class Payment(models.Model):
     amount_paid = models.PositiveIntegerField(null=True, blank=True)
     
     def _calc_amount_due(self) -> int:
-        student = self.enrollment.student
-        plan = PricePlan.objects.get(option=self.enrollment.option, cycle=self.cycle)
-        
-        base = Decimal(plan.base_price)
-        total = base
-        
-        is_late = self.due_date.day > CUTOFF_DAY
-        monthly = self.cycle == "M"
-        family = student.is_family_member
-        by_cash = self.method == "cash"
-        by_trans = self.method == "transfer"
-        
+        """
+        Base price ± late-penalty ± one possible discount.
+
+        Late penalty (10 %) applies **only** when:
+        • today is after the 10th, AND
+        • the student enrolled on/before the 10th of the same month
+        """
+        plan   = PricePlan.objects.get(option=self.enrollment.option, cycle=self.cycle)
+        total  = Decimal(plan.base_price)
+
+        today                = timezone.now().date()
+        joined_before_cutoff = self.enrollment.start.day <= CUTOFF_DAY
+        after_cutoff_today   = today.day > CUTOFF_DAY
+        is_late              = joined_before_cutoff and after_cutoff_today
+
         if is_late:
-            total += total * LATE_PENALTY
-            
-        discount_applies = None
-        if monthly:
-            if not is_late and by_cash:
-                discount_applies = "cash"
-            elif by_trans and family:
-                discount_applies = "family"
-                
-        if discount_applies:
-            total -= total * DISCOUNT_RATE
-            
+            total += total * LATE_PENALTY      # +10 %
+
+        if self.cycle == "M":                  # discounts allowed only for monthly
+            if not is_late and self.method == "cash":
+                total -= total * DISCOUNT_RATE            # 10 % cash discount
+            elif self.method == "transfer" and self.enrollment.student.is_family_member:
+                total -= total * DISCOUNT_RATE            # 10 % family + transfer
+
         return _round_up(total)
-    
+
+
     def save(self, *args, **kwargs):
         self.amount_due = self._calc_amount_due()
         super().save(*args, **kwargs)
-        
+
+
     def amount_due_for(self) -> int:
+        """Convenience helper to recalc without saving."""
         return self._calc_amount_due()
     

@@ -3,12 +3,23 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
+from django_filters import rest_framework as filters
 from django.db.models import F, Value, BooleanField, Case, When, Q
 from datetime import date
 
-from .serializers import StudentSerializer, ClassOptionSerializer, ClassSerializer, EnrollmentSerializer, PaymentSerializer
+from .serializers import StudentSerializer, StudentCreateSerializer, ClassOptionSerializer, ClassSerializer, EnrollmentSerializer, PaymentSerializer
 from .querysets import student_with_finance
 from .models import Class, ClassOption, Enrollment, Payment, Student
+
+class StudentFilter(filters.FilterSet):
+    is_paid  = filters.BooleanFilter(field_name='is_paid')
+    is_late  = filters.BooleanFilter(field_name='is_late')
+    # reuse the real column for filtering; keep alias only in the serializer
+    has_family = filters.BooleanFilter(field_name='is_family_member')
+
+    class Meta:
+        model  = Student
+        fields = ['active', 'DNI', 'is_paid', 'is_late', 'has_family']
 
 class StudentViewSet(ModelViewSet):
     serializer_class = StudentSerializer
@@ -17,8 +28,15 @@ class StudentViewSet(ModelViewSet):
     def get_queryset(self):
         return student_with_finance()
     
+    def get_serializer_class(self):
+        return (
+            StudentCreateSerializer
+            if self.action == "create"
+            else StudentSerializer
+        )
+    
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['active', 'is_paid', 'is_late', 'has_family', 'DNI']
+    filter_class = StudentFilter
     search_fields = ['first_name', 'last_name', 'DNI']
     ordering_fields = ['last_name', 'amount_due', 'debt', 'DNI']
     ordering = ['last_name']
@@ -46,15 +64,15 @@ class ClassOptionViewSet(ModelViewSet):
     
 class EnrollmentViewSet(ModelViewSet):
     queryset = (
-        Enrollment.objects.select_related('student', 'class_option')
+        Enrollment.objects.select_related('student', 'option')
         .order_by('start', 'student__last_name', 'student__first_name')
     )
     serializer_class = EnrollmentSerializer
     permission_classes = []
     
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['student__dni', 'class_option']
-    search_fields = ['student__dni', 'student__first_name', 'student__last_name', 'class_option__klass__name']
+    filterset_fields = ['student__DNI', 'option']
+    search_fields = ['student__DNI', 'student__first_name', 'student__last_name', 'option__klass__name']
     ordering_fields = ['start', 'due_date', 'paid_on', 'amount_due', 'amount_paid']
     ordering = ['start']
 
@@ -66,7 +84,7 @@ class PaymentViewSet(ModelViewSet):
         today = date.today()
         return (
             Payment.objects
-            .select_related('enrollment__student', 'enrollment__class_option__klass')
+            .select_related('enrollment__student', 'enrollment__option__klass')
             .annotate(
                 is_paid=Case(
                     When(amount_paid__gte=F('amount_due'), then=Value(True)),
@@ -89,7 +107,7 @@ class PaymentViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = {
         "method":          ["exact"],
-        "enrollment__student__dni": ["exact"],     # filter by DNI
+        "enrollment__student__DNI": ["exact"],     # filter by DNI
         "is_paid":         ["exact"],
         "is_late":         ["exact"],
         "due_date":        ["gte", "lte"],
