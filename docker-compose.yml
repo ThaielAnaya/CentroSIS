@@ -13,24 +13,29 @@ services:
       - pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    networks:
+      - app_net
 
   backend:
-    build: 
-      context: ./backend
-      args:
-        POSTGRES_DB: ${POSTGRES_DB}
-        POSTGRES_USER: ${POSTGRES_USER}
-        POSTGRES_HOST: ${POSTGRES_HOST}
-        POSTGRES_PORT: ${POSTGRES_PORT}
-        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    build: ./backend
     env_file:
       - .env
+    networks:
+      - app_net
+    volumes:
+      - static_volume:/app/staticfiles
     depends_on:
       - db
-    environment:
-      DATABASE_URL: postgresql://admin:Kyokaicentro2610@localhost:5432/centrodb
-    ports:
-      - "8000:8000"
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn config.wsgi:application --bind 0.0.0.0:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE: /api
     networks:
       - app_net
 
@@ -38,16 +43,18 @@ services:
     image: nginx:stable-alpine
     depends_on:
       - backend
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-      - ./backend/staticfiles:/static
+      - frontend
     networks:
       - app_net
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - static_volume:/app/staticfiles
+      - ./frontend/dist:/usr/share/nginx/html
 
 volumes:
+  static_volume:
   pgdata:
 
 networks:

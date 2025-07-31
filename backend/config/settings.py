@@ -16,7 +16,7 @@ SECRET_KEY = 'django-insecure-58-p-)j%!b6l(hubt3#^u%t1k#s$)x70tl_1#fxfb1-ui=!mzm
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["192.168.0.8", "localhost", "181.47.199.50"]
+ALLOWED_HOSTS = ["192.168.0.8", "localhost", "181.47.199.50", "backend", "nginx"]
 
 
 # Application definition
@@ -80,7 +80,7 @@ DATABASES = {
         'NAME': config('POSTGRES_DB'),
         'USER': config('POSTGRES_USER'),
         'PASSWORD': config('POSTGRES_PASSWORD'),
-        'HOST': "127.0.0.1",
+        'HOST': config('POSTGRES_HOST'),
         'PORT': config('POSTGRES_PORT', default='5432'),
     }
 }
